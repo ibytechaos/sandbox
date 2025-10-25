@@ -1,7 +1,7 @@
 # Dockerfile for ghcr.io/agent-infra/sandbox reverse engineering
 # Based on analysis of the original image
 
-# Use Ubuntu 25.10 as base image (from image inspection)
+# Use Ubuntu 25.10 as base image (user specified)
 FROM ubuntu:25.10
 
 # Set build arguments
@@ -65,6 +65,8 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-venv \
+    python3-setuptools \
+    python3-dev \
     nodejs \
     npm \
     nginx \
@@ -79,14 +81,9 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     lsb-release \
     software-properties-common \
-    && locale-gen en_US.UTF-8 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install additional tools based on the image analysis
-RUN apt-get update && apt-get install -y \
     chromium-browser \
     firefox \
+    && locale-gen en_US.UTF-8 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -104,11 +101,11 @@ RUN chmod +x /opt/gem/mcp-ctl.sh
 # Install Python dependencies for gem-server
 WORKDIR /opt/gem-server
 RUN if [ -f pyproject.toml ]; then \
-    pip3 install -e . ; \
+    pip3 install --break-system-packages --ignore-installed -e . ; \
     fi
 
 # Set up Jupyter Lab
-RUN pip3 install jupyterlab
+RUN pip3 install --break-system-packages jupyterlab
 
 # Set up Code Server
 RUN curl -fsSL https://code-server.dev/install.sh | sh
